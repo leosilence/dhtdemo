@@ -1,5 +1,6 @@
 import SocketServer
 import logging
+import time
 from bencode import bdecode, bencode, BTFailure
 import threading
 from utils import random_trans_id, random_node_id, get_version
