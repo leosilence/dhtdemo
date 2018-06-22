@@ -104,6 +104,16 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
                     logger.debug("Adding %r %s:%d as new node" % (new_node_id.encode("hex"), new_node_host, new_node_port))
                     self.server.nodeTable.update_node(new_node_id, Node(new_node_host, new_node_port, new_node_id))
 
+            # cleanup boot node
+            if node._id == "boot":
+                logger.debug("This is response from \"boot\" node, replacing it")
+                # Create new node instance and move transactions from boot node to newly node
+                new_boot_node = Node(client_host, client_port, node_id)
+                new_boot_node.trans = node.trans
+                self.server.nodeTable.update_node(node_id, new_boot_node)
+                # Remove old boot node
+                self.server.nodeTable.remove_node(node._id)
+
         return
 
     def handle_query(self, message):
@@ -137,12 +147,13 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
 
         return transid
 
-    def add_trans(self, name, info_hash=None):
+    def add_trans(self, name, node, info_hash=None):
         """ Generate and add new transaction """
         trans_id = self.getCurTransID()
         with self.lock:
             self.trans[trans_id] = {
                     "name": name,
+                    "node": node,
                     "info_hash": info_hash,
                     "access_time": int(time.time())
             }
@@ -157,7 +168,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         """ Get appropriate node by transaction_id """
         with self.lock:
             if trans_id in self.trans:
-                return self.trans[trans_id]
+                return self.trans[trans_id].node
         return None
 
     def _sendmessage(self, message, trans_id=None, ips=None, lock=None):
@@ -182,9 +193,9 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
                     logger.error('send udp error')        
 
     #find the node close
-    def find_node(self, target_id, sender_id=None, nodeips=None, lock=None):
+    def find_node(self, target_id, toNode, sender_id=None, lock=None):
         """ Construct query find_node message """
-        trans_id = self.add_trans("find_node")
+        trans_id = self.add_trans("find_node", toNode)
         message = {
             "y": "q",
             "q": "find_node",
@@ -195,14 +206,14 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         }
 
         logger.debug("find_node msg to %s:%d, y:%s, q:%s, t: %r" % (
-            nodeips[0], 
-            nodeips[1],
+            toNode.host, 
+            toNode.post,
             message["y"], 
             message["q"], 
             trans_id.encode("hex")
         ))
 
-        self._sendmessage(message, trans_id=trans_id, ips=nodeips, lock=lock)
+        self._sendmessage(message, trans_id=trans_id, ips=(toNode.host, toNode.post), lock=lock)
 
 if __name__ == "__main__":
     dhtSvr = DHTServer(('0.0.0.0', 9500), DHTRequestHandler)
@@ -214,6 +225,7 @@ if __name__ == "__main__":
 
     id = random_node_id()
 
+    boot_node = Node('router.bittorrent.com', 6881, "boot")
     while dhtSvr.nodeTable.count() <= 4:
 
         if len(dhtSvr.trans) > 5:
@@ -223,7 +235,7 @@ if __name__ == "__main__":
         #去find自己，这样的作用是可以得到与自己邻近的节点
         #self.server.socket是UDP的socket
 
-        dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
+        dhtSvr.find_node(target_id=id, toNode=boot_node, sender_id=id)
         time.sleep(5)
 
     logger.debug("finish!")
