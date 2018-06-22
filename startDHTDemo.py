@@ -225,5 +225,6 @@ if __name__ == "__main__":
             dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
             time.sleep(5)
 
+    logger.debug("finish!")
 
     time.sleep(60*60*8)
