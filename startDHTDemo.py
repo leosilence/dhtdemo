@@ -58,7 +58,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
         logger.debug("Response message from %s:%d, t:%r, id:%r" % (client_host, client_port, trans_id.encode("hex"), node_id.encode("hex")))
 
         # Do we already know about this node?
-        node = self.nodeTable.node_by_id(node_id)
+        node = self.server.nodeTable.node_by_id(node_id)
         if not node:
             logger.debug("Cannot find appropriate node during simple search: %r" % (node_id.encode("hex")))
             #Trying to search via transaction id
@@ -70,7 +70,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
 
         logger.debug("We found apropriate node %r for %r" % (node, node_id.encode("hex")))
 
-        if trans_id in self.trans:
+        if trans_id in self.server.trans:
             logger.debug("Found and deleting transaction %r in node: %r" % (trans_id.encode("hex"), node))
             #由于长时间没有响应的node会被自动删除,这里关系到多线程并发。所以可能会有bug
             #the server thread competes "node" resource with the iterative_thread
@@ -102,7 +102,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
                 logger.debug("We got new nodes from %r" % (node))
                 for new_node_id, new_node_host, new_node_port in new_nodes:
                     logger.debug("Adding %r %s:%d as new node" % (new_node_id.encode("hex"), new_node_host, new_node_port))
-                    self.nodeTable.update_node(new_node_id, Node(new_node_host, new_node_port, new_node_id))
+                    self.server.nodeTable.update_node(new_node_id, Node(new_node_host, new_node_port, new_node_id))
 
         return
 
