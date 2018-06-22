@@ -1,6 +1,6 @@
 import SocketServer
 import logging
-from .bencode import bdecode, BTFailure
+from bencode import bdecode, BTFailure
 
 SELF_LAN_IP = "34.219.153.100"
 
