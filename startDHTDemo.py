@@ -107,8 +107,8 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         }
 
         logger.debug("find_node msg to %s:%d, y:%s, q:%s, t: %r" % (
-            self.host, 
-            self.port, 
+            nodeips[0], 
+            nodeips[1],
             message["y"], 
             message["q"], 
             trans_id.encode("hex")
@@ -128,4 +128,4 @@ if __name__ == "__main__":
     dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
 
 
-
+    time.sleep(60*60*8)
