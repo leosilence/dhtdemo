@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import SocketServer
 import logging
 import time
 from bencode import bdecode, bencode, BTFailure
 import threading
 from utils import decode_nodes, random_trans_id, random_node_id, get_version
+from rtable import RoutingTable
 
 SELF_LAN_IP = "34.219.153.100"
 
@@ -55,13 +57,52 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
         client_host, client_port = self.client_address
         logger.debug("Response message from %s:%d, t:%r, id:%r" % (client_host, client_port, trans_id.encode("hex"), node_id.encode("hex")))
 
+        # Do we already know about this node?
+        node = self.nodeTable.node_by_id(node_id)
+        if not node:
+            logger.debug("Cannot find appropriate node during simple search: %r" % (node_id.encode("hex")))
+            #Trying to search via transaction id
+            #get the node who sent the request, that correspondents to the response
+            node = self.node_by_trans(trans_id)
+            if not node:
+                logger.debug("Cannot find appropriate node for transaction: %r" % (trans_id.encode("hex")))
+                return
+
+        logger.debug("We found apropriate node %r for %r" % (node, node_id.encode("hex")))
+
+        if trans_id in self.trans:
+            logger.debug("Found and deleting transaction %r in node: %r" % (trans_id.encode("hex"), node))
+            #由于长时间没有响应的node会被自动删除,这里关系到多线程并发。所以可能会有bug
+            #the server thread competes "node" resource with the iterative_thread
+            try:
+                trans = self.trans[trans_id]
+                self.delete_trans(trans_id)
+            except:
+                logger.debug('delete trans on a deleted node')
+                return
+        else:
+            logger.debug("Cannot find transaction %r in node: %r" % (trans_id.encode("hex"), node))
+            return
+
         if "ip" in args:
             logger.debug("They try to SECURE me: %s", unpack_host(args["ip"].encode('hex')))
 
-        if "nodes" in args:
-            new_nodes = decode_nodes(args["nodes"])
-            for new_node_id, new_node_host, new_node_port in new_nodes:
-                logger.debug("Adding %r %s:%d as new node" % (new_node_id.encode("hex"), new_node_host, new_node_port))
+        #the server thread competes "node" resource with the iterative_thread
+        try:
+            t_name = trans["name"]
+        except:
+            logger.debug('get name on a deleted trans')
+            return
+
+        if t_name == "find_node":
+            node.update_access()
+            logger.debug("find_node response from %r" % (node))
+            if "nodes" in args:
+                new_nodes = decode_nodes(args["nodes"])
+                logger.debug("We got new nodes from %r" % (node))
+                for new_node_id, new_node_host, new_node_port in new_nodes:
+                    logger.debug("Adding %r %s:%d as new node" % (new_node_id.encode("hex"), new_node_host, new_node_port))
+                    self.nodeTable.update_node(new_node_id, Node(new_node_host, new_node_port, new_node_id))
 
         return
 
@@ -82,6 +123,42 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         SocketServer.UDPServer.__init__(self, host_address, handler_cls)
         #the mutex for multi_threading
         self.send_lock = threading.Lock()
+
+        self.nodeTable = RoutingTable()
+
+        self.trans = {}
+        
+    def getCurTransID():
+        with self.lock:
+            transid = random_trans_id()
+
+            while transid in self.trans:
+                transid = random_trans_id()
+
+            return transid
+
+    def add_trans(self, name, info_hash=None):
+        """ Generate and add new transaction """
+        trans_id = getCurTransID()
+        with self.lock:
+            self.trans[trans_id] = {
+                    "name": name,
+                    "info_hash": info_hash,
+                    "access_time": int(time.time())
+            }
+        return trans_id
+
+    def delete_trans(self, trans_id):
+        """ Delete specified transaction """
+        with self.lock:
+            del self.trans[trans_id]            
+
+    def node_by_trans(self, trans_id):
+        """ Get appropriate node by transaction_id """
+        with self.lock:
+            if trans_id in self.trans:
+                return self.trans[trans_id]
+        return None
 
     def _sendmessage(self, message, trans_id=None, ips=None, lock=None):
         """ Send and bencode constructed message to other node """
@@ -107,7 +184,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     #find the node close
     def find_node(self, target_id, sender_id=None, nodeips=None, lock=None):
         """ Construct query find_node message """
-        trans_id = random_trans_id()
+        trans_id = add_trans("find_node")
         message = {
             "y": "q",
             "q": "find_node",
@@ -136,7 +213,17 @@ if __name__ == "__main__":
     server_thread.start()
 
     id = random_node_id()
-    dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
+
+    while dhtSvr.nodeTable.count() <= 4:
+
+        if len(dhtSvr.trans) > 5:
+            logger.error("Too many attempts to bootstrap, seems boot node %s:%d is down. Givin up" % (boot_host, boot_port))
+            break
+
+            #去find自己，这样的作用是可以得到与自己邻近的节点
+            #self.server.socket是UDP的socket
+            dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
+            time.sleep(5)
 
 
     time.sleep(60*60*8)
