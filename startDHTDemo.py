@@ -128,7 +128,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
 
         self.trans = {}
         
-    def getCurTransID():
+    def getCurTransID(self):
         transid = random_trans_id()
 
         with self.lock:
