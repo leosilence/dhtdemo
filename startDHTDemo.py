@@ -129,13 +129,13 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         self.trans = {}
         
     def getCurTransID():
-        with self.lock:
-            transid = random_trans_id()
+        transid = random_trans_id()
 
+        with self.lock:
             while transid in self.trans:
                 transid = random_trans_id()
 
-            return transid
+        return transid
 
     def add_trans(self, name, info_hash=None):
         """ Generate and add new transaction """
