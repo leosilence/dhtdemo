@@ -214,7 +214,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
             trans_id.encode("hex")
         ))
 
-        self._sendmessage(message, trans_id=trans_id, ips=(toNode.host, toNode.post), lock=lock)
+        self._sendmessage(message, trans_id=trans_id, ips=(toNode.host, toNode.port), lock=lock)
 
 if __name__ == "__main__":
     dhtSvr = DHTServer(('0.0.0.0', 9500), DHTRequestHandler)
