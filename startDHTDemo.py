@@ -2,6 +2,7 @@ import SocketServer
 import logging
 from bencode import bdecode, BTFailure
 import threading
+from .utils import random_trans_id, get_version
 
 SELF_LAN_IP = "34.219.153.100"
 
@@ -60,10 +61,6 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         SocketServer.UDPServer.__init__(self, host_address, handler_cls)
         #the mutex for multi_threading
         self.send_lock = threading.Lock()
-
-    def get_version():
-        """ Return appropriate DHT version bytes """
-        return "BT\x00\x01"        
 
     def _sendmessage(self, message, trans_id=None, ips=None, lock=None):
         """ Send and bencode constructed message to other node """
