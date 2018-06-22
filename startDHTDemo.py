@@ -217,7 +217,7 @@ if __name__ == "__main__":
     while dhtSvr.nodeTable.count() <= 4:
 
         if len(dhtSvr.trans) > 5:
-            logger.error("Too many attempts to bootstrap, seems boot node %s:%d is down. Givin up" % (dhtSvr., boot_port))
+            logger.error("Too many attempts to bootstrap, seems boot node %s:%d is down. Givin up" % (dhtSvr.host, dhtSvr.port))
             break
 
         #去find自己，这样的作用是可以得到与自己邻近的节点
