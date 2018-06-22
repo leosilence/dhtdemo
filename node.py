@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import logging
 
 logger = logging.getLogger("log")
@@ -17,3 +19,25 @@ class Node(object):
         self.lock = threading.Lock()
 
         self.access_time = time.time()
+
+    def __repr__(self):
+        #official string represent the the node
+        return repr("%s %s:%d" % (self._id.encode('hex'), self.host, self.port))
+
+    #修改该节点被访问的时间
+    def update_access(self, unixtime=None):
+        """ Update last access/modify time of this node """
+        with self.lock:
+            if unixtime:
+                self.access_time = unixtime
+            else:
+                self.access_time = time.time()
+
+    def getID(self):
+        return self._id
+
+    def getIP(self):
+        return self.host
+
+    def getPort(self):
+        return self.port
