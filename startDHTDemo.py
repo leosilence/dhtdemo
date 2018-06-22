@@ -212,7 +212,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
             message["y"], 
             message["q"], 
             trans_id.encode("hex"),
-            message["a"]["target"]
+            message["a"]["target"].encode("hex")
         ))
 
         self._sendmessage(message, trans_id=trans_id, ips=(toNode.host, toNode.port), lock=lock)
