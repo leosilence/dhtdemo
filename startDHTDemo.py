@@ -169,7 +169,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         """ Get appropriate node by transaction_id """
         with self.lock:
             if trans_id in self.trans:
-                return self.trans[trans_id].node
+                return self.trans[trans_id]["node"]
         return None
 
     def _sendmessage(self, message, trans_id=None, ips=None, lock=None):
