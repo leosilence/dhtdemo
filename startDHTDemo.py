@@ -117,7 +117,7 @@ if __name__ == "__main__":
     server_thread.start()
 
     id = random_node_id()
-    dhtSvr.find_node(id, ('router.bittorrent.com', 6881) sender_id=id)
+    dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
 
 
 
