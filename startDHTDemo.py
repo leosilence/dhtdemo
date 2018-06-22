@@ -6,8 +6,15 @@ from utils import random_trans_id, random_node_id, get_version
 
 SELF_LAN_IP = "34.219.153.100"
 
+#formatter = logging.Formatter("[%(levelname)s@%(created)s] %(message)s")
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+stdout_handler = logging.StreamHandler()
+stdout_handler.setFormatter(formatter)
+
 logger = logging.getLogger("log")
 logger.setLevel(logging.DEBUG)
+logger.addHandler(stdout_handler)
 
 class DHTRequestHandler(SocketServer.BaseRequestHandler):
 
