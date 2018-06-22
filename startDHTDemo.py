@@ -58,7 +58,8 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
 
         if "nodes" in args:
             new_nodes = decode_nodes(args["nodes"])
-            logger.debug("We got new nodes from %r" % (node))
+            for new_node_id, new_node_host, new_node_port in new_nodes:
+                logger.debug("Adding %r %s:%d as new node" % (new_node_id.encode("hex"), new_node_host, new_node_port))
 
         return
 
