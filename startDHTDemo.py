@@ -75,7 +75,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
             #由于长时间没有响应的node会被自动删除,这里关系到多线程并发。所以可能会有bug
             #the server thread competes "node" resource with the iterative_thread
             try:
-                trans = self.trans[trans_id]
+                trans = self.server.trans[trans_id]
                 self.server.delete_trans(trans_id)
             except:
                 logger.debug('delete trans on a deleted node')
