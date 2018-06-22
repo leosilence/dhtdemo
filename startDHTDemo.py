@@ -57,6 +57,9 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
 
 class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     def __init__(self, host_address, handler_cls):
+
+        self.host, self.port = host_address
+
         #__init__ is the constructor of the UDPServer
         SocketServer.UDPServer.__init__(self, host_address, handler_cls)
         #the mutex for multi_threading
