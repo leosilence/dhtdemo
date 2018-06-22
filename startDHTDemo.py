@@ -122,7 +122,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         #__init__ is the constructor of the UDPServer
         SocketServer.UDPServer.__init__(self, host_address, handler_cls)
         #the mutex for multi_threading
-        self.send_lock = threading.Lock()
+        self.lock = threading.Lock()
 
         self.nodeTable = RoutingTable()
 
