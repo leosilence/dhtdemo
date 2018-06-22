@@ -4,6 +4,7 @@ import sys
 import SocketServer
 import logging
 import time
+from node import Node
 from bencode import bdecode, bencode, BTFailure
 import threading
 from utils import decode_nodes, random_trans_id, random_node_id, get_version
