@@ -3,7 +3,7 @@ import logging
 import time
 from bencode import bdecode, bencode, BTFailure
 import threading
-from utils import random_trans_id, random_node_id, get_version
+from utils import decode_nodes, random_trans_id, random_node_id, get_version
 
 SELF_LAN_IP = "34.219.153.100"
 
@@ -52,6 +52,13 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
 
         client_host, client_port = self.client_address
         logger.debug("Response message from %s:%d, t:%r, id:%r" % (client_host, client_port, trans_id.encode("hex"), node_id.encode("hex")))
+
+        if "ip" in args:
+            logger.debug("They try to SECURE me: %s", unpack_host(args["ip"].encode('hex')))
+
+        if "nodes" in args:
+            new_nodes = decode_nodes(args["nodes"])
+            logger.debug("We got new nodes from %r" % (node))
 
         return
 
