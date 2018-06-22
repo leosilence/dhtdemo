@@ -2,7 +2,7 @@ import SocketServer
 import logging
 from bencode import bdecode, BTFailure
 import threading
-from utils import random_node_id, get_version
+from utils import random_trans_id, random_node_id, get_version
 
 SELF_LAN_IP = "34.219.153.100"
 
