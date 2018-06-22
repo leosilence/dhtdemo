@@ -63,7 +63,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
             logger.debug("Cannot find appropriate node during simple search: %r" % (node_id.encode("hex")))
             #Trying to search via transaction id
             #get the node who sent the request, that correspondents to the response
-            node = self.node_by_trans(trans_id)
+            node = self.server.node_by_trans(trans_id)
             if not node:
                 logger.debug("Cannot find appropriate node for transaction: %r" % (trans_id.encode("hex")))
                 return
@@ -76,7 +76,7 @@ class DHTRequestHandler(SocketServer.BaseRequestHandler):
             #the server thread competes "node" resource with the iterative_thread
             try:
                 trans = self.trans[trans_id]
-                self.delete_trans(trans_id)
+                self.server.delete_trans(trans_id)
             except:
                 logger.debug('delete trans on a deleted node')
                 return
