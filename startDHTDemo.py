@@ -206,12 +206,13 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
             }
         }
 
-        logger.debug("find_node msg to %s:%d, y:%s, q:%s, t: %r" % (
+        logger.debug("find_node msg to %s:%d, y:%s, q:%s, t: %r, target:%s" % (
             toNode.host, 
             toNode.port,
             message["y"], 
             message["q"], 
-            trans_id.encode("hex")
+            trans_id.encode("hex"),
+            message["a"]["target"]
         ))
 
         self._sendmessage(message, trans_id=trans_id, ips=(toNode.host, toNode.port), lock=lock)
