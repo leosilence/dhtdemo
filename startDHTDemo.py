@@ -208,7 +208,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
 
         logger.debug("find_node msg to %s:%d, y:%s, q:%s, t: %r" % (
             toNode.host, 
-            toNode.post,
+            toNode.port,
             message["y"], 
             message["q"], 
             trans_id.encode("hex")
