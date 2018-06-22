@@ -214,15 +214,25 @@ if __name__ == "__main__":
 
     id = random_node_id()
 
+    logger.debug("1!")
+
     while dhtSvr.nodeTable.count() <= 4:
+
+        logger.debug("2!")
 
         if len(dhtSvr.trans) > 5:
             logger.error("Too many attempts to bootstrap, seems boot node %s:%d is down. Givin up" % (boot_host, boot_port))
             break
 
+            logger.debug("3!")
+
             #去find自己，这样的作用是可以得到与自己邻近的节点
             #self.server.socket是UDP的socket
+
+            logger.debug("4!")
             dhtSvr.find_node(target_id=id, sender_id=id, nodeips=('router.bittorrent.com', 6881))
+
+            logger.debug("5!")
             time.sleep(5)
 
     logger.debug("finish!")
