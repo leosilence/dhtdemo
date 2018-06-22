@@ -184,7 +184,7 @@ class DHTServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     #find the node close
     def find_node(self, target_id, sender_id=None, nodeips=None, lock=None):
         """ Construct query find_node message """
-        trans_id = add_trans("find_node")
+        trans_id = self.add_trans("find_node")
         message = {
             "y": "q",
             "q": "find_node",
